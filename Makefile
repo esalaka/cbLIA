@@ -4,10 +4,10 @@ CFLAGS=-ggdb -O2 -Wall -Wextra -Werror -pedantic -pedantic-errors
 CPPFLAGS=
 LDFLAGS=
 
-cblia: main.o parser.o
-	gcc $(CFLAGS) -o cblia main.o $(LDFLAGS)
+cblia: *.o
+	gcc $(CFLAGS) -o cblia $+ $(LDFLAGS)
 
 clean:
-	rm main.o cblia
+	rm -f *.o cblia
 
 .PHONY: clean

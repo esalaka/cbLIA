@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <string.h>
 
 #include "parser.h"
 
@@ -29,6 +28,19 @@ int main(int argc, char *argv[])
 	if (parser_return > 0) {
 		fprintf(stdout, "Exiting due to parser error\n");
 	}
+
+	lexer_return = 0;
+
+	if (lexer_return > 0) {
+		fprintf(stdout, "Exiting due to lexer error\n");
+	}
+	
+	compiler_return = 0;
+
+	if (compiler_return > 0) {
+		fprintf(stdout, "Exiting due to compiler error\n");
+	}
+
 	/* Finally */
 	fclose(input);
 
