@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "tokeniser.h"
 
@@ -11,6 +12,8 @@ int main(int argc, char *argv[])
 
 	FILE *input;
 	int parse_error;
+	struct lill_token *token_str;
+
 	/* 
 	 * That's just kind of magic up there tho
 	 * It's used because there shouldn't be a case where it errors
@@ -23,16 +26,28 @@ int main(int argc, char *argv[])
 		return LERR_NO_INPUT;
 	}
 	
-	parse_error = lill_tokenise(input);
+	/* token_stream will be a malloc'd array containing the tokens! */
+	parse_error = lill_tokenise(input, &token_str);
 	
 	switch (parse_error) {
 		case LILL_PARSE_UNEXPECTED_CHARACTER:
-			fprintf(stderr, "Tokeniser: unexpected character\n");
+			fprintf(stderr, "Tokeniser: unexpected character "
+				"in input stream\n");
+			break;
+
+		case 0:
+			break;
+
+		default:
+			fprintf(stderr, "Tokeniser error\n");
 			break;
 	}
 
 	if (parse_error == 0) {
 		/* Next phase */
+
+		/* We don't have next phase though so let's just */
+		free(token_str);
 	}
 
 	/* Finally */
