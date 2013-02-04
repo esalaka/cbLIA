@@ -36,6 +36,7 @@ int main(int argc, char *argv[])
 			break;
 
 		case 0:
+			fprintf(stdout, "Tokenisation succesful!\n");
 			break;
 
 		default:
