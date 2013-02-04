@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
 		return LERR_NO_INPUT;
 	}
 	
-	/* token_stream will be a malloc'd array containing the tokens! */
+	/* token_str will be a malloc'd array containing the tokens! */
 	parse_error = lill_tokenise(input, &token_str);
 	
 	switch (parse_error) {
