@@ -10,7 +10,8 @@
 
 /* Used for magic. Keep up-to-date. */
 /* Keep the ending as \r \t and space. It is important. */
-static const char * single_char_tokens = "=(),$#\r\t ";
+/* $ and # are omitted because they are ALWAYS special cases */
+static const char * single_char_tokens = "=(),\r\t ";
 
 int is_varname_letter(unsigned char c)
 {
@@ -76,6 +77,7 @@ int lill_tokenise(FILE *input, struct lill_token **token_str)
 		MODE_NONE,
 		MODE_TEXT,
 		MODE_NUMBER, /* TODO: negative hex???? */
+		MODE_SKIP, /* Not in the state machine */
 		MODE_ERROR /* Keep this the last mode */
 	} mode;
 
@@ -101,6 +103,17 @@ int lill_tokenise(FILE *input, struct lill_token **token_str)
 			case MODE_TEXT:
 				if (is_varname_legal(curr)) {
 					data[data_ptr++] = curr;
+					break;
+				}
+
+				if (curr == '#' || curr == '$') {
+					insert_token(token_str, &str_size, &str_ptr, TOKEN_TEXT, data, sizeof(data));
+
+					insert_token(token_str, &str_size, &str_ptr,
+						(curr == '#') ? TOKEN_HASH : TOKEN_DOLLAR, &curr, 1);
+
+					/* Ignore further tests */
+					mode = MODE_SKIP;
 					break;
 				}
 
@@ -140,6 +153,12 @@ int lill_tokenise(FILE *input, struct lill_token **token_str)
 				}
 		}
 
+		if (mode == MODE_SKIP) {
+			/* No further checks necessary */
+			mode = MODE_NONE;
+			continue;
+		}
+
 		if (curr == '\r') {
 			curr = fgetc(input);
 			if (curr != '\n') {
@@ -177,18 +196,8 @@ int lill_tokenise(FILE *input, struct lill_token **token_str)
 			case ',':
 				token_type = TOKEN_COMMA;
 				break;
-
-			case '$':
-				token_type = TOKEN_DOLLAR;
-				break;
-
-			case '#':
-				token_type = TOKEN_HASH;
-				break;
-			
 			default:
 				if (mode == MODE_NONE) {
-
 					/* If nothing else matches... */
 					mode = MODE_ERROR;
 					err = LILL_PARSE_UNEXPECTED_CHARACTER;
