@@ -8,6 +8,10 @@
 
 #define STREAM_SIZE_INCREMENT 10
 
+/* Used for magic. Keep up-to-date. */
+/* Keep the ending as \r \t and space. It is important. */
+static const char * single_char_tokens = "=(),$#\r\t ";
+
 int is_varname_letter(unsigned char c)
 {
 	/* From Windows-1252 */
@@ -27,9 +31,9 @@ int is_varname_legal(unsigned char c)
 		? 1 : 0;
 }
 
-void resize_if_needed(size_t *str_size, size_t *str_ptr, struct lill_token **token_str) {
+void resize_if_needed(int *str_size, int *str_ptr, struct lill_token **token_str) {
 
-	size_t new_size;
+	int new_size;
 	struct lill_token *temp;
 
 	if ((*str_ptr) == (*str_size)) {
@@ -47,12 +51,12 @@ void resize_if_needed(size_t *str_size, size_t *str_ptr, struct lill_token **tok
 		free(temp);
 
 		/* Memory reallocated */
-		printf("Resized array to %ld\n", new_size);
+		printf("Resized array to %d\n", new_size);
 	}
 }
 
-void insert_token(struct lill_token **token_str, size_t *str_size, size_t *str_ptr,
-	enum lill_token_type type, const void *data, size_t data_size) {
+void insert_token(struct lill_token **token_str, int *str_size, int *str_ptr,
+	enum lill_token_type type, const void *data, int data_size) {
 
 	resize_if_needed(str_size, str_ptr, token_str);
 
@@ -64,9 +68,10 @@ void insert_token(struct lill_token **token_str, size_t *str_size, size_t *str_p
 
 int lill_tokenise(FILE *input, struct lill_token **token_str)
 {
-	size_t str_size, str_ptr, data_ptr;
+	int str_size, str_ptr, data_ptr;
 	int curr, err;
 	unsigned char data[LILL_TOKEN_DATA_SIZE];
+	enum lill_token_type token_type;
 	enum {
 		MODE_NONE,
 		MODE_TEXT,
@@ -99,93 +104,15 @@ int lill_tokenise(FILE *input, struct lill_token **token_str)
 					break;
 				}
 
-				if (curr == ' ' || curr == '\t') {
+				/* MAGIC! */
+				if (strchr(single_char_tokens, curr)) {
 					insert_token(token_str, &str_size, &str_ptr, TOKEN_TEXT, data, sizeof(data));
-					printf("TOKEN_TEXT\n");
 
 					/* Exit MODE_TEXT */
 					mode = MODE_NONE;
 					break;
 				}
 
-				if (curr == '(') {
-					insert_token(token_str, &str_size, &str_ptr, TOKEN_TEXT, data, sizeof(data));
-					printf("TOKEN_TEXT\n");
-
-					insert_token(token_str, &str_size, &str_ptr, TOKEN_LBRACKET, "(", 2);
-					printf("TOKEN_LBRACKET\n");
-
-					/* Exit MODE_TEXT */
-					mode = MODE_NONE;
-					break;
-				}
-
-				if (curr == ')') {
-					insert_token(token_str, &str_size, &str_ptr, TOKEN_TEXT, data, sizeof(data));
-					printf("TOKEN_TEXT\n");
-
-					insert_token(token_str, &str_size, &str_ptr, TOKEN_RBRACKET, ")", 2);
-					printf("TOKEN_RBRACKET\n");
-
-					/* Exit MODE_TEXT */
-					mode = MODE_NONE;
-					break;
-				}
-					
-				if (curr == ',') {
-					insert_token(token_str, &str_size, &str_ptr, TOKEN_TEXT, data, sizeof(data));
-					printf("TOKEN_TEXT\n");
-
-					insert_token(token_str, &str_size, &str_ptr, TOKEN_COMMA, ",", 2);
-					printf("TOKEN_COMMA\n");
-
-					/* Exit MODE_TEXT */
-					mode = MODE_NONE;
-					break;
-				}
-					
-				if (curr == '$') {
-					insert_token(token_str, &str_size, &str_ptr, TOKEN_TEXT, data, sizeof(data));
-					printf("TOKEN_TEXT\n");
-
-					insert_token(token_str, &str_size, &str_ptr, TOKEN_DOLLAR, "$", 2);
-					printf("TOKEN_DOLLAR\n");
-
-					/* Exit MODE_TEXT */
-					mode = MODE_NONE;
-					break;
-				}
-
-				if (curr == '#') {
-					insert_token(token_str, &str_size, &str_ptr, TOKEN_TEXT, data, sizeof(data));
-					printf("TOKEN_TEXT\n");
-
-					insert_token(token_str, &str_size, &str_ptr, TOKEN_HASH, "#", 2);
-					printf("TOKEN_HASH\n");
-
-					/* Exit MODE_TEXT */
-					mode = MODE_NONE;
-					break;
-				}
-
-				if (curr == '\r') {
-					insert_token(token_str, &str_size, &str_ptr, TOKEN_TEXT, data, sizeof(data));
-					printf("TOKEN_TEXT\n");
-
-					curr = fgetc(input);
-					if (curr != '\n') {
-						mode = MODE_ERROR;
-						err = LILL_PARSE_UNEXPECTED_CHARACTER;
-						break;
-					}
-					/* No else needed since we break */
-
-					/* Write token and increment pointer */
-					insert_token(token_str, &str_size, &str_ptr, TOKEN_EOL, "\r\n", 3);
-					printf("TOKEN_EOL\n");
-
-					break;
-				}
 				/* If no match and we're still in MODE_TEXT */
 				mode = MODE_ERROR;
 				err = LILL_PARSE_UNEXPECTED_CHARACTER;
@@ -199,27 +126,6 @@ int lill_tokenise(FILE *input, struct lill_token **token_str)
 
 			case MODE_NONE:
 			default:
-				if (curr == '\r') {
-					curr = fgetc(input);
-					if (curr != '\n') {
-						mode = MODE_ERROR;
-						err = LILL_PARSE_UNEXPECTED_CHARACTER;
-						break;
-					}
-					/* No else needed since we break */
-
-					/* Write token and increment pointer */
-					insert_token(token_str, &str_size, &str_ptr, TOKEN_EOL, "\r\n", 3);
-					printf("TOKEN_EOL\n");
-
-					break;
-				}
-
-				if (curr == ' ' || curr == '\t') {
-					/* Whitespace! */
-					break;
-				}
-
 				if (is_varname_letter(curr) || curr == '_') {
 					/* Initialise temp data */
 					memset(data, '\0', sizeof(data));
@@ -230,32 +136,69 @@ int lill_tokenise(FILE *input, struct lill_token **token_str)
 
 					/* Go to text mode */
 					mode = MODE_TEXT;
-
 					break;
 				}
+		}
 
-				if (curr == '(') {
-					insert_token(token_str, &str_size, &str_ptr, TOKEN_LBRACKET, "(", 2);
-					printf("TOKEN_LBRACKET\n");
-					break;
-				}
-
-				if (curr == ')') {
-					insert_token(token_str, &str_size, &str_ptr, TOKEN_RBRACKET, ")", 2);
-					printf("TOKEN_RBRACKET\n");
-					break;
-				}
-					
-				if (curr == ',') {
-					insert_token(token_str, &str_size, &str_ptr, TOKEN_COMMA, ",", 2);
-					printf("TOKEN_COMMA\n");
-					break;
-				}
-
-				/* If nothing else matches... */
+		if (curr == '\r') {
+			curr = fgetc(input);
+			if (curr != '\n') {
 				mode = MODE_ERROR;
 				err = LILL_PARSE_UNEXPECTED_CHARACTER;
+				continue;
+			}
+			/* No else needed since we break */
+
+			/* Write token and increment pointer */
+			insert_token(token_str, &str_size, &str_ptr, TOKEN_EOL, "\r\n", 3);
+
+			continue;
+		}
+
+		if (curr == ' ' || curr == '\t') {
+			/* Whitespace! */
+			continue;
+		}
+
+		token_type = 0; /* I know it's invalid ssh */
+		switch (curr) {
+			case '=':
+				token_type = TOKEN_EQUALS;
 				break;
+
+			case '(':
+				token_type = TOKEN_LBRACKET;
+				break;
+
+			case ')':
+				token_type = TOKEN_RBRACKET;
+				break;
+
+			case ',':
+				token_type = TOKEN_COMMA;
+				break;
+
+			case '$':
+				token_type = TOKEN_DOLLAR;
+				break;
+
+			case '#':
+				token_type = TOKEN_HASH;
+				break;
+			
+			default:
+				if (mode == MODE_NONE) {
+
+					/* If nothing else matches... */
+					mode = MODE_ERROR;
+					err = LILL_PARSE_UNEXPECTED_CHARACTER;
+					break;
+				}
+		}
+			
+		if (err == 0 && token_type != 0) {
+			/* &curr is a pointer to one char. The struct data is pre-zeroed. */
+			insert_token(token_str, &str_size, &str_ptr, token_type, &curr, 1);
 		}
 
 	}
@@ -265,5 +208,6 @@ int lill_tokenise(FILE *input, struct lill_token **token_str)
 		free((*token_str));
 	}
 
-	return err;
+	/* Return error if it exists. */
+	return (err != 0) ? err : str_ptr;
 }

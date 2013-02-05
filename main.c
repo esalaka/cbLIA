@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
 	const char * filename = (argc < 2) ? default_file : argv[1];
 
 	FILE *input;
-	int parse_error;
+	int parse_output;
 	struct lill_token *token_str;
 
 	/* 
@@ -27,24 +27,26 @@ int main(int argc, char *argv[])
 	}
 	
 	/* token_str will be a malloc'd array containing the tokens! */
-	parse_error = lill_tokenise(input, &token_str);
+	parse_output = lill_tokenise(input, &token_str);
 	
-	switch (parse_error) {
+	switch (parse_output) {
 		case LILL_PARSE_UNEXPECTED_CHARACTER:
 			fprintf(stderr, "Tokeniser: unexpected character "
 				"in input stream\n");
 			break;
 
 		case 0:
-			fprintf(stdout, "Tokenisation succesful!\n");
+			fprintf(stdout, "Null output from tokeniser\n");
+			free(token_str);
 			break;
 
 		default:
-			fprintf(stderr, "Tokeniser error\n");
+			fprintf(stdout, "Tokenisation succesful!\n"
+				"(%d tokens)\n", parse_output);
 			break;
 	}
 
-	if (parse_error == 0) {
+	if (parse_output > 0) {
 		/* Next phase */
 
 		/* We don't have next phase though so let's just */
@@ -54,6 +56,7 @@ int main(int argc, char *argv[])
 	/* Finally */
 	fclose(input);
 
-	return parse_error;
+	/* Below zero is error */
+	return (parse_output < 0) ? 1 : 0;
 }
 

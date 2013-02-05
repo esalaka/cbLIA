@@ -5,7 +5,10 @@ CPPFLAGS=
 LDFLAGS=
 
 cblia: main.o tokeniser.o
-	gcc $(CFLAGS) -o cblia $+ $(LDFLAGS)
+	$(CC) $(CFLAGS) -o cblia $+ $(LDFLAGS)
+
+tokeniser.o: tokeniser.c tokeniser.h lill_token.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
 
 clean:
 	rm -f *.o cblia
