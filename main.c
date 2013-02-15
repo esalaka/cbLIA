@@ -2,6 +2,8 @@
 #include <stdlib.h>
 
 #include "tokeniser.h"
+#include "parser.h"
+#include "errors.h"
 
 #define LERR_NO_INPUT 1
 
@@ -13,6 +15,7 @@ int main(int argc, char *argv[])
 	FILE *input;
 	int parse_output;
 	struct lill_token *token_str;
+	struct lill_stoken *stok_str;
 
 	/* 
 	 * That's just kind of magic up there tho
@@ -30,7 +33,7 @@ int main(int argc, char *argv[])
 	parse_output = lill_tokenise(input, &token_str);
 	
 	switch (parse_output) {
-		case LILL_PARSE_UNEXPECTED_CHARACTER:
+		case LILL_UNEXPECTED_CHARACTER:
 			fprintf(stderr, "Tokeniser: unexpected character "
 				"in input stream\n");
 			break;
@@ -48,8 +51,8 @@ int main(int argc, char *argv[])
 
 	if (parse_output > 0) {
 		/* Next phase */
+		lill_convert_tokens();
 
-		/* We don't have next phase though so let's just */
 		free(token_str);
 	}
 

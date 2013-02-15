@@ -3,6 +3,7 @@
 #include "parser.h"
 #include "lill_token.h"
 #include "lill_stoken.h"
+#include "errors.h"
 
 static const char * a[] = {
 	"abs",
@@ -479,3 +480,4 @@ static const char * const * const initials[] = {
 };
 
 /* Access: initial[char - 'a'] */
+

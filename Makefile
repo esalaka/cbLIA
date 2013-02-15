@@ -4,16 +4,16 @@ CFLAGS=-ggdb -O2 -std=c99 -Wall -Wextra -Werror -pedantic -pedantic-errors
 CPPFLAGS=-DDEBUG
 LDFLAGS=
 
-cblia: main.o tokeniser.o parser_1.o parser_2.o
+cblia: main.o tokeniser.o parser.o
 	$(CC) $(CFLAGS) -o cblia $+ $(LDFLAGS)
 
-tokeniser.o: tokeniser.c tokeniser.h lill_token.h
+main.o: main.c tokeniser.h parser.h errors.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
 
-parser_1.o: parser_1.c parser.h lill_token.h lill_stoken.h
+tokeniser.o: tokeniser.c tokeniser.h lill_token.h errors.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
 
-parser_2.o: parser_2.c parser.h lill_stoken.h
+parser.o: parser.c parser.h lill_token.h lill_treenode.h errors.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
 
 clean:

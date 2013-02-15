@@ -5,6 +5,7 @@
 
 #include "tokeniser.h"
 #include "lill_token.h"
+#include "errors.h"
 
 #define STREAM_SIZE_INCREMENT 10
 
@@ -128,7 +129,7 @@ int lill_tokenise(FILE *input, struct lill_token **token_str)
 
 				/* If no match and we're still in MODE_TEXT */
 				mode = MODE_ERROR;
-				err = LILL_PARSE_UNEXPECTED_CHARACTER;
+				err = LILL_UNEXPECTED_CHARACTER;
 				break;
 
 			case MODE_NUMBER:
@@ -163,7 +164,7 @@ int lill_tokenise(FILE *input, struct lill_token **token_str)
 			curr = fgetc(input);
 			if (curr != '\n') {
 				mode = MODE_ERROR;
-				err = LILL_PARSE_UNEXPECTED_CHARACTER;
+				err = LILL_UNEXPECTED_CHARACTER;
 				continue;
 			}
 			/* No else needed since we break */
@@ -200,7 +201,7 @@ int lill_tokenise(FILE *input, struct lill_token **token_str)
 				if (mode == MODE_NONE) {
 					/* If nothing else matches... */
 					mode = MODE_ERROR;
-					err = LILL_PARSE_UNEXPECTED_CHARACTER;
+					err = LILL_UNEXPECTED_CHARACTER;
 					break;
 				}
 		}

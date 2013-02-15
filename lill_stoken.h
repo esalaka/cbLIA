@@ -1,4 +1,0 @@
-#ifndef CBLIA_LILL_STOKEN
-#define CBLIA_LILL_STOKEN
-
-#endif /* CBLIA_LILL_STOKEN */
