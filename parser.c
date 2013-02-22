@@ -480,4 +480,6 @@ static const char * const * const initials[] = {
 };
 
 /* Access: initial[char - 'a'] */
-
+int lill_convert_tokens(struct lill_token **token_str)
+{
+	

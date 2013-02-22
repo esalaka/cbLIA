@@ -13,8 +13,17 @@ struct lill_token {
 		TOKEN_COMMA,    /* , */
 		TOKEN_DOLLAR,   /* $ */
 		TOKEN_HASH,     /* # */
-		TOKEN_EOL       /* \r\n */
-	} type; /* I think that's all of them for now? */
+		TOKEN_EOL,       /* \r\n */
+		/* More precise types follow */
+		TOKEN_VARIABLE,
+		TOKEN_KW_FUNCTION,
+		TOKEN_KW_AS,
+		TOKEN_KW_INTEGER,
+		TOKEN_KW_FLOAT,
+		TOKEN_KW_STRING,
+		TOKEN_KW_SHORT,
+		TOKEN_KEYWORD
+	} type; 
 
 	/*
 	 * If this weren't auto-allocated we'd run into issues:

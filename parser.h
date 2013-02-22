@@ -3,9 +3,8 @@
 
 /* Forward declarations */
 struct lill_token;
-struct lill_stoken;
 
 /* Functions */
-int lill_convert_tokens();
+int lill_convert_tokens(struct lill_token **token_str);
 
 #endif /* CBLIA_PARSER_H */
