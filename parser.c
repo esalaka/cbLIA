@@ -1,8 +1,10 @@
 #include <stddef.h>
+#include <string.h>
+#include <ctype.h>
+#include <stdio.h>
 
 #include "parser.h"
 #include "lill_token.h"
-#include "lill_stoken.h"
 #include "errors.h"
 
 static const char * a[] = {
@@ -14,6 +16,7 @@ static const char * a[] = {
 	"animationheight",
 	"animationplaying",
 	"animationwidth",
+	"as",
 	"asc",
 	"asin",
 	"atan",
@@ -478,8 +481,94 @@ static const char * const * const initials[] = {
 	NULL, /* y */
 	NULL /* z */
 };
+/* Access: initials[char - 'a'] */
 
-/* Access: initial[char - 'a'] */
-int lill_convert_tokens(struct lill_token **token_str)
+void fixup_keyword(struct lill_token *current)
 {
+	char temp[LILL_TOKEN_DATA_SIZE];
+	int i;
+
+	memset(temp, 0, sizeof(temp));
+
+	for (i = 0; current->data[i] != 0; ++i) {
+		temp[i] = tolower(current->data[i]);
+	}
+
+	/* I know this looks horrible */
+	if (strcmp(temp, "function") == 0) {
+		current->type = TOKEN_KW_FUNCTION;
+	}
+	else if (strcmp(temp, "as") == 0) {
+		current->type = TOKEN_KW_AS;
+	}
+	else if (strcmp(temp, "integer") == 0) {
+		current->type = TOKEN_KW_INTEGER;
+	}
+	else if (strcmp(temp, "float") == 0) {
+		current->type = TOKEN_KW_FLOAT;
+	}
+	else if (strcmp(temp, "string") == 0) {
+		current->type = TOKEN_KW_STRING;
+	}
+	else if (strcmp(temp, "short") == 0) {
+		current->type = TOKEN_KW_SHORT;
+	}
+
+	/* THERE ACTUALLY IS AN EXPLANATION:
+	 *
+	 * Namely, I only need a very limited set of
+	 * keywords to be recognised. The rest are, in all
+	 * cases, INVALID. This means that I can simply go
+	 * and detect whether they're one of these few
+	 * valid ones and if they aren't, do nothing.
+	 *
+	 * The next phase of the parser should kill self if
+	 * it runs into an instance of TOKEN_KEYWORD.
+	 */
+}
+
+int detect_keyword(struct lill_token *current)
+{
+	char temp[LILL_TOKEN_DATA_SIZE];
+	int i;
+
+	memset(temp, 0, sizeof(temp));
+
+	for (i = 0; current->data[i] != 0; ++i) {
+		temp[i] = tolower(current->data[i]);
+	}
+
+	const char * const * const initial = initials[temp[0] - 'a'];
+
+	for (i = 0; initial[i] != NULL; ++i)
+	{
+		if (strcmp(temp, initial[i]) == 0) {
+			current->type = TOKEN_KEYWORD;
+			fixup_keyword(current);
+			fprintf(stdout, "Keyword %s\n", current->data);
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+int lill_convert_tokens(struct lill_token **token_str, int token_count)
+{
+	int i;
+
+	for (i = 0; i < token_count; ++i) {
+		
+		if ((*token_str)[i].type == TOKEN_TEXT) {
+			if (initials[(*token_str)[i].data[0] - 'a'] != NULL) {
+				if (!detect_keyword((*token_str) + i)) {
+					(*token_str)[i].type = TOKEN_VARIABLE;
+					fprintf(stdout, "Variable %s\n", (*token_str)[i].data);
+				}
+			}
+		}
+	}
 	
+	return 0; /* No error is zero */
+	/* I just do things like that */
+}

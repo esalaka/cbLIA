@@ -13,7 +13,7 @@ main.o: main.c tokeniser.h parser.h errors.h
 tokeniser.o: tokeniser.c tokeniser.h lill_token.h errors.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
 
-parser.o: parser.c parser.h lill_token.h lill_treenode.h errors.h
+parser.o: parser.c parser.h lill_token.h errors.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
 
 clean:

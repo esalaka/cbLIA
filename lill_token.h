@@ -29,7 +29,7 @@ struct lill_token {
 	 * If this weren't auto-allocated we'd run into issues:
 	 * Pointers to malloc'd shit inside malloc'd shit
 	 */
-	unsigned char data[LILL_TOKEN_DATA_SIZE];
+	char data[LILL_TOKEN_DATA_SIZE];
 };
 
 #endif /* CBLIA_LILL_TOKEN_H */

@@ -15,7 +15,6 @@ int main(int argc, char *argv[])
 	FILE *input;
 	int parse_output;
 	struct lill_token *token_str;
-	struct lill_stoken *stok_str;
 
 	/* 
 	 * That's just kind of magic up there tho
@@ -51,8 +50,10 @@ int main(int argc, char *argv[])
 
 	if (parse_output > 0) {
 		/* Next phase */
-		lill_convert_tokens();
-
+		if (lill_convert_tokens(&token_str, parse_output) == 0)
+		{
+			fprintf(stdout, "Token stream converted\n");
+		}
 		free(token_str);
 	}
 
