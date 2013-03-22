@@ -1,0 +1,34 @@
+(* Symbols that are defined by rules with no non-terminal *)
+(* components are sometimes left undefined; instead,      *)
+(* they are represented by symbols written in CAPITAL     *)
+(* LETTERS. This mirrors the fact they are represented by *)
+(* constants in C. It is, however, not quite in line with *)
+(* common EBNF conventions. I beg your forgiveness.       *)
+
+(* Additionally, the grammar is written as if there was   *)
+(* no whitespace used in the language. Therefore it is    *)
+(* prudent to imagine that for most symbols with no       *)
+(* non-terminal components, whitespace is implicitly      *)
+(* allowed after and before the symbol. This is not true  *)
+(* for a few: For instance, it is forbidden to have       *)
+(* whitespace preceding DOLLAR or HASH.                   *)
+
+(* The reason whitespace and definitions for symbols      *)
+(* written in CAPITALS were omitted is that this grammar  *)
+(* is defined in terms of the token stream created by     *)
+(* the tokeniser. Creating whitespace tokens would've     *)
+(* been pointless as the only purpose of whitespace is to *)
+(* separate tokens. Defining the content of symbols in    *)
+(* CAPITALS is unnecessary since the last parser never    *)
+(* touches their actual content.                          *)
+
+definitions = { line } ;
+line = function_definition , EOL ;
+function_definition = FUNCTION , VARIABLE , parameter_list , long_type_specification ;
+parameter_list = LBRACKET , separated_variables, RBRACKET ;
+separated_variables = variable_definition , comma_prefixed_variables | '' ;
+variable_definition = VARIABLE , type_specification ;
+type_specification = HASH | DOLLAR | long_type_specification | '' ;
+long_type_specification = AS , type_name ;
+type_name = INTEGER | FLOAT | STRING | SHORT ;
+comma_prefixed_variables = { COMMA , variable_definition } | '' ;

@@ -4,6 +4,7 @@
 #include "tokeniser.h"
 #include "parser.h"
 #include "errors.h"
+#include "descent.h"
 
 #define LERR_NO_INPUT 1
 
@@ -53,6 +54,12 @@ int main(int argc, char *argv[])
 		if (lill_convert_tokens(&token_str, parse_output) == 0)
 		{
 			fprintf(stdout, "Token stream converted\n");
+			if (lill_descend(token_str, parse_output) == 0) {
+				fprintf(stdout, "Parsed succesfully.\n");
+
+				/* Enter codegen. */
+				/* As soon as the parser outputs a tree. */
+			}
 		}
 		free(token_str);
 	}
