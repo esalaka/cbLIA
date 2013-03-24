@@ -257,5 +257,12 @@ int lill_descend(struct lill_token *token_str, int token_count, struct lill_tree
 
 	ret = definitions();
 	fprintf(stdout, "Parser returned %d\n", ret);
-	return (ret == 1) ? 0 : 1;
+
+	if (ret == 1) {
+		return 0;
+	}
+	else {
+		free(*tree);
+		return 1;
+	}
 }
