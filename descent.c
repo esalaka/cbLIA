@@ -262,6 +262,7 @@ int lill_descend(struct lill_token *token_str, int token_count, struct lill_tree
 		return 0;
 	}
 	else {
+		/* Rerr */
 		free(*tree);
 		return 1;
 	}

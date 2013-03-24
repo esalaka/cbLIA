@@ -483,7 +483,7 @@ static const char * const * const initials[] = {
 };
 /* Access: initials[char - 'a'] */
 
-void fixup_keyword(struct lill_token *current)
+static void fixup_keyword(struct lill_token *current)
 {
 	char temp[LILL_TOKEN_DATA_SIZE];
 	int i;
@@ -527,7 +527,7 @@ void fixup_keyword(struct lill_token *current)
 	 */
 }
 
-int detect_keyword(struct lill_token *current)
+static int detect_keyword(struct lill_token *current)
 {
 	char temp[LILL_TOKEN_DATA_SIZE];
 	int i;

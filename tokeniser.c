@@ -14,7 +14,7 @@
 /* $ and # are omitted because they are ALWAYS special cases */
 static const char * single_char_tokens = "=(),\r\t ";
 
-int is_varname_letter(unsigned char c)
+static int is_varname_letter(unsigned char c)
 {
 	/* From Windows-1252 */
 	return ((c >= 'A' && c <= 'Z')
@@ -25,7 +25,7 @@ int is_varname_letter(unsigned char c)
 		? 1 : 0;
 }
 
-int is_varname_legal(unsigned char c)
+static int is_varname_legal(unsigned char c)
 {
 	return (is_varname_letter(c)
 		|| (c >= '0' && c <= '9')
@@ -33,7 +33,7 @@ int is_varname_legal(unsigned char c)
 		? 1 : 0;
 }
 
-void resize_if_needed(int *str_size, int *str_ptr, struct lill_token **token_str) {
+static void resize_if_needed(int *str_size, int *str_ptr, struct lill_token **token_str) {
 
 	int new_size;
 	struct lill_token *temp;
@@ -57,7 +57,7 @@ void resize_if_needed(int *str_size, int *str_ptr, struct lill_token **token_str
 	}
 }
 
-void insert_token(struct lill_token **token_str, int *str_size, int *str_ptr,
+static void insert_token(struct lill_token **token_str, int *str_size, int *str_ptr,
 	enum lill_token_type type, const void *data, int data_size) {
 
 	resize_if_needed(str_size, str_ptr, token_str);
