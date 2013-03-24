@@ -16,6 +16,7 @@ int main(int argc, char *argv[])
 	FILE *input;
 	int parse_output;
 	struct lill_token *token_str;
+	struct lill_tree_node *tree;
 
 	/* 
 	 * That's just kind of magic up there tho
@@ -54,7 +55,7 @@ int main(int argc, char *argv[])
 		if (lill_convert_tokens(&token_str, parse_output) == 0)
 		{
 			fprintf(stdout, "Token stream converted\n");
-			if (lill_descend(token_str, parse_output) == 0) {
+			if (lill_descend(token_str, parse_output, &tree) == 0) {
 				fprintf(stdout, "Parsed succesfully.\n");
 
 				/* Enter codegen. */

@@ -1,7 +1,9 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "descent.h"
 #include "lill_token.h"
+#include "lill_tree_node.h"
 
 static int token_total;
 static struct lill_token *current;
@@ -242,13 +244,16 @@ static int definitions(void)
 		
 }
 
-int lill_descend(struct lill_token *token_str, int token_count)
+int lill_descend(struct lill_token *token_str, int token_count, struct lill_tree_node **tree)
 {
 	int ret;
 
 	token_total = token_count;
 	current_number = 1;
 	current = token_str;
+
+	/* Create tree */
+	(*tree) = calloc(token_count, sizeof(struct lill_tree_node));
 
 	ret = definitions();
 	fprintf(stdout, "Parser returned %d\n", ret);

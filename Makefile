@@ -16,7 +16,7 @@ tokeniser.o: tokeniser.c tokeniser.h lill_token.h errors.h
 parser.o: parser.c parser.h lill_token.h errors.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
 
-descent.o: descent.c descent.h lill_token.h errors.h
+descent.o: descent.c descent.h lill_token.h lill_tree_node.h errors.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
 
 clean:
