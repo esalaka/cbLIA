@@ -559,6 +559,11 @@ int lill_convert_tokens(struct lill_token **token_str, int token_count)
 
 	for (i = 0; i < token_count; ++i) {
 		
+                if ((*token_str)[i].type == TOKEN_EOF) {
+                        fprintf(stdout, "EOF\n");
+                        break;
+                }
+
 		if ((*token_str)[i].type == TOKEN_TEXT) {
 			if (initials[(*token_str)[i].data[0] - 'a'] != NULL) {
 				if (!detect_keyword((*token_str) + i)) {

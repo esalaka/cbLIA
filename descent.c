@@ -32,6 +32,10 @@ static void previous_token(void)
 
 static int accept(enum lill_token_type type)
 {
+        if (current == NULL) {
+                fprintf(stderr, "CRITICAL: current was NULL inside accept\n");
+                return 0;
+        }
 	return (current->type == type) ? 1 : 0;
 }
 
@@ -214,33 +218,32 @@ static int function_definition(void)
 
 static int line(void)
 {
-	if (function_definition()) {
-	}
-	else {
-		fprintf(stderr, "Expected function definition\n(Got %s at token %d)\n", current->data, current_number);
-		return 0;
-	}
 
 	if (accept(TOKEN_EOL)) {
+                next_token();
 		return 1;
 	}
 	else {
-		fprintf(stderr, "Expected EOL\n(Got %s at token %d)\n", current->data, current_number);
-		return 0;
+                if (function_definition()) {
+                        return 1;
+                }
+                else {
+                        fprintf(stderr, "Expected function definition or EOL\n(Got %s at token %d)\n", current->data, current_number);
+                        return 0;
+                }
 	}
 }
 
 static int definitions(void)
 {
-	if (line()) {
-		while (line()) {
-		}
-		return 1;
+	while(line()) {
+                if (accept(TOKEN_EOF)) {
+                        return 1; // We're done
+                }
 	}
-	else {
-		fprintf(stderr, "Expected line\n(Got %s at token %d)\n", current->data, current_number);
-		return 0;
-	}
+
+        fprintf(stderr, "Expected line\n(Got %s at token %d)\n", current->data, current_number);
+        return 0;
 		
 }
 

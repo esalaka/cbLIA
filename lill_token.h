@@ -13,7 +13,8 @@ struct lill_token {
 		TOKEN_COMMA,    /* , */
 		TOKEN_DOLLAR,   /* $ */
 		TOKEN_HASH,     /* # */
-		TOKEN_EOL,       /* \r\n */
+		TOKEN_EOL,      /* \r\n */
+                TOKEN_EOF,      /* EOF */
 		/* More precise types follow */
 		TOKEN_VARIABLE,
 		TOKEN_KW_FUNCTION,

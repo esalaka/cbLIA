@@ -57,6 +57,15 @@ static void resize_if_needed(int *str_size, int *str_ptr, struct lill_token **to
 	}
 }
 
+/* Why the hell haven't I documented this */
+/* Insert token:
+ *      &token_str is the token stream
+ *      &str_size is the size of the token stream
+ *      &str_ptr is the current last element number of the token stream
+ *      type is the type of the token to be inserted
+ *      &data is the data (string contents) of the token
+ *      data_size is the size of &data
+ */
 static void insert_token(struct lill_token **token_str, int *str_size, int *str_ptr,
 	enum lill_token_type type, const void *data, int data_size) {
 
@@ -180,7 +189,7 @@ int lill_tokenise(FILE *input, struct lill_token **token_str)
 			continue;
 		}
 
-		token_type = 0; /* I know it's invalid ssh */
+		token_type = 0; /* I know it's invalid shh */
 		switch (curr) {
 			case '=':
 				token_type = TOKEN_EQUALS;
@@ -217,6 +226,9 @@ int lill_tokenise(FILE *input, struct lill_token **token_str)
 		/* So we can just fail */
 		free((*token_str));
 	}
+
+        /* Insert an EOF token to terminate parser later */
+        insert_token(token_str, &str_size, &str_ptr, TOKEN_EOF, "", 0);
 
 	/* Return error if it exists. */
 	return (err != 0) ? err : str_ptr;
