@@ -69,7 +69,7 @@ static int long_type_specification(void)
                 next_token();
         }
         else {
-                return 0;
+                return 1; /* Empty */
         }
 
         if (type_name()) {
@@ -124,14 +124,17 @@ static int variable_definition(void)
 
 static int comma_prefixed_variables(void)
 {
-        while (accept(TOKEN_COMMA)) {
-                next_token();
-                if (variable_definition()) {
-                }
-                else {
-                        fprintf(stderr, "Expected variable\n(Got %s at token %d)\n", current->data, current_number);
-                        return 0;
-                }
+        /* No commas just means this is empty */
+        if (accept(TOKEN_COMMA)) {
+                do {
+                        next_token();
+                        if (variable_definition()) {
+                        }
+                        else {
+                                fprintf(stderr, "Expected variable\n(Got %s at token %d)\n", current->data, current_number);
+                                return 0;
+                        }
+                } while (accept(TOKEN_COMMA));
         }
         
         return 1;
@@ -140,19 +143,18 @@ static int comma_prefixed_variables(void)
 static int separated_variables(void)
 {
         if (variable_definition()) {
+                if (comma_prefixed_variables()) {
+                        return 1;
+                }
+                else {
+                        fprintf(stderr, "Expected more variables\n(Got %s at token %d)\n", current->data, current_number);
+                        return 0;
+                }
         }
         else {
                 return 1;
         }
 
-        if (comma_prefixed_variables()) {
-                return 1;
-        }
-        else {
-                fprintf(stderr, "Expected more variables\n(Got %s at token %d)\n", current->data, current_number);
-                return 0;
-        }
-        
 }
 
 static int parameter_list(void)
@@ -212,7 +214,8 @@ static int function_definition(void)
                 return 1;
         }
         else {
-                return 1;
+                fprintf(stderr, "Expected long type specification\n(Got %s at token %d)\n", current->data, current_number);
+                return 0;
         }
 }
 
