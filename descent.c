@@ -226,6 +226,14 @@ static int line(void)
         else {
                 if (function_definition()) {
                         return 1;
+
+                        if (accept(TOKEN_EOL)) {
+                                next_token();
+                                return 1;
+                        }
+                        else {
+                                fprintf(stderr, "Expected EOL\n(Got %s at token %d)\n", current->data, current_number);
+                        }
                 }
                 else {
                         fprintf(stderr, "Expected function definition or EOL\n(Got %s at token %d)\n", current->data, current_number);
@@ -242,7 +250,7 @@ static int definitions(void)
                 }
         }
 
-        fprintf(stderr, "Expected line\n(Got %s at token %d)\n", current->data, current_number);
+        fprintf(stderr, "Expected line or EOF\n(Got %s at token %d)\n", current->data, current_number);
         return 0;
                 
 }

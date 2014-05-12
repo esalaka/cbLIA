@@ -6,6 +6,7 @@
 #include "parser.h"
 #include "lill_token.h"
 #include "errors.h"
+#include "util.h"
 
 static const char * a[] = {
         "abs",
@@ -556,6 +557,7 @@ static int detect_keyword(struct lill_token *current)
 int lill_convert_tokens(struct lill_token **token_str, int token_count)
 {
         int i;
+        unsigned char initial;
 
         for (i = 0; i < token_count; ++i) {
                 
@@ -565,11 +567,22 @@ int lill_convert_tokens(struct lill_token **token_str, int token_count)
                 }
 
                 if ((*token_str)[i].type == TOKEN_TEXT) {
-                        if (initials[(*token_str)[i].data[0] - 'a'] != NULL) {
-                                if (!detect_keyword((*token_str) + i)) {
-                                        (*token_str)[i].type = TOKEN_VARIABLE;
-                                        fprintf(stdout, "Variable %s\n", (*token_str)[i].data);
-                                }
+                        initial = (*token_str)[i].data[0];
+
+                        if ((!is_varname_latin(initial)) /* Sorry for the hacky look */
+                            || (initials[initial - 'a'] == NULL)
+                            || (!detect_keyword((*token_str) + i))) {
+                                /* It looks like this to avoid a lot of weird shit */
+                                /*
+                                 * "If varname doesn't begin with a latin
+                                 * character, or if it does but no single
+                                 * keyword begins with the initial,
+                                 * or the variable name matches no keyword,
+                                 * we have a TOKEN_VARIABLE"
+                                 */
+
+                                (*token_str)[i].type = TOKEN_VARIABLE;
+                                fprintf(stdout, "Variable %s\n", (*token_str)[i].data);
                         }
                 }
         }

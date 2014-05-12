@@ -22,7 +22,7 @@
 (* CAPITALS is unnecessary since the last parser never    *)
 (* touches their actual content.                          *)
 
-definitions = { line }, EOF ;
+definitions = { line }, [ EOF ] ;
 line = function_definition , EOL ;
 function_definition = FUNCTION , VARIABLE , parameter_list , [ long_type_specification ] ;
 parameter_list = LBRACKET , separated_variables, RBRACKET ;
