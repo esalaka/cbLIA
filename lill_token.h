@@ -3,8 +3,11 @@
 
 #define LILL_TOKEN_DATA_SIZE 64
 
+#define STREAM_SIZE_INCREMENT 10
+
 struct lill_token {
         enum lill_token_type {
+                /* THIS MUST MATCH lill_tree_node_type */
                 TOKEN_TEXT,
                 TOKEN_NUMBER,
                 TOKEN_EQUALS,   /* = */

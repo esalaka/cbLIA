@@ -8,8 +8,6 @@
 #include "errors.h"
 #include "util.h"
 
-#define STREAM_SIZE_INCREMENT 10
-
 /* Used for magic. Keep up-to-date. */
 /* Keep the ending as \r \t and space. It is important. */
 /* $ and # are omitted because they are ALWAYS special cases */
