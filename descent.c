@@ -24,32 +24,17 @@ static int current_number;
 static struct lill_tree_node *current_node;
 static struct lill_tree_node *last_node;
 static int node_number;
-static int tree_size;
 static struct lill_tree_node **tree_ptr;
 
-static void resize_tree_if_needed() {
-
-        int new_size;
-        struct lill_tree_node *temp_tree_ptr;
-
-        printf("%d/%d ", node_number, tree_size);
-
-        if (tree_size == node_number) {
-                /* Old values in temporaries */
-                new_size = tree_size + STREAM_SIZE_INCREMENT;
-                temp_tree_ptr = (*tree_ptr);
-
-                /* Allocate new memory and copy */
-                (*tree_ptr) = calloc(new_size, sizeof(struct lill_tree_node));
-                memcpy((*tree_ptr), temp_tree_ptr, tree_size * sizeof(struct lill_tree_node));
-
-                tree_size = new_size;
+void free_tree_recursively(struct lill_tree_node *tree)
+{
+        if (tree != NULL) {
+                for (size_t i = 0; i < tree->child_count; ++i) {
+                        free_tree_recursively(tree->children[i]);
+                }
 
                 /* Finally */
-                free(temp_tree_ptr);
-
-                /* Memory reallocated */
-                printf("Resized array to %d\n", new_size);
+                free(tree);
         }
 }
 
@@ -70,9 +55,8 @@ static void new_root_node(enum lill_tree_node_type type)
 
 static void new_leaf_node(void)
 {
-        ++last_node;
+        last_node = calloc(1, sizeof(struct lill_tree_node));
         ++node_number;
-        resize_tree_if_needed();
 
         last_node->parent = current_node;
         last_node->child_count = 0;
@@ -82,6 +66,7 @@ static void new_leaf_node(void)
         last_node->type = current->type;
         memcpy(last_node->data, current->data, sizeof(current->data));
 
+        current_node->children[current_node->child_count] = last_node;
         ++(current_node->child_count);
 
         printf("Leaf node %d\n", current->type);
@@ -90,9 +75,8 @@ static void new_leaf_node(void)
 static void new_internal_node(enum lill_tree_node_type type)
 {
         /* Boilerplate... */
-        ++last_node;
+        last_node = calloc(1, sizeof(struct lill_tree_node));
         ++node_number;
-        resize_tree_if_needed();
 
         last_node->parent = current_node;
         last_node->child_count = 0;
@@ -101,6 +85,7 @@ static void new_internal_node(enum lill_tree_node_type type)
         last_node->type = type;
         memset(last_node->data, 0, sizeof(last_node->data));
 
+        current_node->children[current_node->child_count] = last_node;
         ++(current_node->child_count);
 
         current_node = last_node;
@@ -409,11 +394,10 @@ int lill_descend(struct lill_token *token_str, int token_count, struct lill_tree
 
         /* Create tree */
         tree_ptr = tree;
-        (*tree_ptr) = calloc(token_count, sizeof(struct lill_tree_node));
+        (*tree_ptr) = calloc(1, sizeof(struct lill_tree_node));
         current_node = *tree_ptr;
         last_node = current_node;
         node_number = 0;
-        tree_size = token_count;
 
         ret = definitions();
         fprintf(stdout, "Parser returned %d\n", ret);
@@ -423,7 +407,7 @@ int lill_descend(struct lill_token *token_str, int token_count, struct lill_tree
         }
         else {
                 /* Rerr */
-                free(*tree);
+                free_tree_recursively(*tree);
                 return 1;
         }
 }

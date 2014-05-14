@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
                                 /* Enter codegen. */
                                 /* As soon as the parser outputs a tree. */
 
-                                free(tree); /* Whee */
+                                free_tree_recursively(tree); /* Whee */
                         }
                 }
                 free(token_str);
