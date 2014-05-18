@@ -187,6 +187,20 @@ static int long_type_specification(void)
         }
 }
 
+static int short_type_specification(void)
+{
+        new_internal_node(NODE_SHORT_TYPE_SPECIFICATION);
+
+        if (accept(TOKEN_HASH)) {
+                next_token();
+        }
+        else if (accept(TOKEN_DOLLAR)) {
+                next_token();
+        }
+
+        RETURN_WITH_SUCCESS();
+}
+
 static int type_specification(void)
 {
         new_internal_node(NODE_TYPE_SPECIFICATION);
@@ -318,6 +332,13 @@ static int function_definition(void)
                 RETURN_WITH_FAILURE();
         }
 
+        if (short_type_specification()) {
+        }
+        else {
+                fprintf(stderr, "Expected short type specification\n(Got %s at token %d)\n", current->data, current_number);
+                RETURN_WITH_FAILURE();
+        }
+
         if (parameter_list()) {
         }
         else {
@@ -325,13 +346,7 @@ static int function_definition(void)
                 RETURN_WITH_FAILURE();
         }
 
-        if (long_type_specification()) {
-                RETURN_WITH_SUCCESS();
-        }
-        else {
-                fprintf(stderr, "Expected long type specification\n(Got %s at token %d)\n", current->data, current_number);
-                RETURN_WITH_FAILURE();
-        }
+        RETURN_WITH_SUCCESS();
 }
 
 static int line(void)

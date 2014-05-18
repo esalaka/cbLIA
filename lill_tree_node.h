@@ -41,6 +41,7 @@ struct lill_tree_node {
                 NODE_VARIABLE_DEFINITION,
                 NODE_TYPE_SPECIFICATION,
                 NODE_LONG_TYPE_SPECIFICATION,
+                NODE_SHORT_TYPE_SPECIFICATION,
                 NODE_TYPE_NAME,
                 NODE_COMMA_PREFIXED_VARIABLES
         } type;

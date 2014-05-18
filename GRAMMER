@@ -24,11 +24,12 @@
 
 definitions = { line }, [ EOF ] ;
 line = function_definition , EOL ;
-function_definition = FUNCTION , VARIABLE , parameter_list , long_type_specification;
+function_definition = FUNCTION , VARIABLE , short_type_specification, parameter_list ;
 parameter_list = LBRACKET , separated_variables, RBRACKET ;
 separated_variables = variable_definition , comma_prefixed_variables | '' ;
 variable_definition = VARIABLE , type_specification;
 type_specification = HASH | DOLLAR | long_type_specification ;
 long_type_specification = AS , type_name | '' ;
+short_type_specification = HASH | DOLLAR | '' ;
 type_name = INTEGER | FLOAT | STRING | SHORT ;
 comma_prefixed_variables = { COMMA , variable_definition } | '';

@@ -2,5 +2,7 @@
 cblia
 *~
 *.swp
-*.lill
 *.exe
+cblia.lill
+cblia.c
+cblia.cb
