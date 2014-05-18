@@ -530,6 +530,7 @@ static void fixup_keyword(struct lill_token *current)
 
 static int detect_keyword(struct lill_token *current)
 {
+        const char * const * initial;
         char temp[LILL_TOKEN_DATA_SIZE];
         int i;
 
@@ -539,7 +540,7 @@ static int detect_keyword(struct lill_token *current)
                 temp[i] = tolower(current->data[i]);
         }
 
-        const char * const * const initial = initials[temp[0] - 'a'];
+        initial = initials[temp[0] - 'a'];
 
         for (i = 0; initial[i] != NULL; ++i)
         {

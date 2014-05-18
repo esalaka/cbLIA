@@ -29,7 +29,8 @@ static struct lill_tree_node **tree_ptr;
 void free_tree_recursively(struct lill_tree_node *tree)
 {
         if (tree != NULL) {
-                for (size_t i = 0; i < tree->child_count; ++i) {
+                size_t i;
+                for (i = 0; i < tree->child_count; ++i) {
                         free_tree_recursively(tree->children[i]);
                 }
 
@@ -375,7 +376,7 @@ static int definitions(void)
 
         while(line()) {
                 if (accept(TOKEN_EOF)) {
-                        RETURN_FINISH_PARSE(); // We're done
+                        RETURN_FINISH_PARSE(); /* We're done */
                 }
         }
 
