@@ -164,6 +164,12 @@ int lill_tokenise(FILE *input, struct lill_token **token_str)
                         continue;
                 }
 
+                if (curr == '\n') {
+                        /* UNIX EOL? Well, whatever */
+                        insert_token(token_str, &str_size, &str_ptr, TOKEN_EOL, "\r\n", 3);
+                        continue;
+                }
+
                 if (curr == ' ' || curr == '\t') {
                         /* Whitespace! */
                         continue;
