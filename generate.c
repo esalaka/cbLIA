@@ -9,6 +9,76 @@ struct lill_function_definition
         char name[64];
 };
 
+const char* lill_tree_node_type_names[] = {
+        /* TERMINALS */
+        /* THESE MUST MATCH lill_token_type!!!!!!!! */
+        "NODE_INVALID",
+        "NODE_LEAF_NUMBER",
+        "NODE_LEAF_EQUALS",
+        "NODE_LEAF_LBRACKET",
+        "NODE_LEAF_RBRACKET",
+        "NODE_LEAF_COMMA",
+        "NODE_LEAF_DOLLAR",
+        "NODE_LEAF_HASH",
+        "NODE_LEAF_EOL",
+        "NODE_LEAF_EOF",
+
+        "NODE_LEAF_VARIABLE",
+        "NODE_LEAF_KW_FUNCTION",
+        "NODE_LEAF_KW_AS",
+        "NODE_LEAF_KW_INTEGER",
+        "NODE_LEAF_KW_FLOAT",
+        "NODE_LEAF_KW_STRING",
+        "NODE_LEAF_KW_SHORT",
+        "NODE_LEAF_KEYWORD",
+
+        /* NONTERMINALS */
+        "NODE_DEFINITIONS",
+        "NODE_LINE",
+        "NODE_FUNCTION_DEFINITION",
+        "NODE_PARAMETER_LIST",
+        "NODE_SEPARATED_VARIABLES",
+        "NODE_VARIABLE_DEFINITION",
+        "NODE_TYPE_SPECIFICATION",
+        "NODE_LONG_TYPE_SPECIFICATION",
+        "NODE_SHORT_TYPE_SPECIFICATION",
+        "NODE_TYPE_NAME",
+        "NODE_COMMA_PREFIXED_VARIABLES"
+};
+
+void printTree(struct lill_tree_node *curr, int depth)
+{
+        unsigned i;
+        int j;
+ 
+        for (j = 0; j < depth; ++j) {
+                putchar(' ');
+                putchar(' ');
+                putchar(' ');
+                putchar(' ');
+        }
+        putchar('`');
+        putchar('-');
+        putchar('-');
+
+        printf("%s, %s\n", lill_tree_node_type_names[curr->type], curr->data);
+
+        if (curr->child_count == 0) { return; }
+
+        for (i = 0; i < curr->child_count; ++i) {
+                for (j = 0; j < depth + 1; ++j) {
+                        putchar(' ');
+                        putchar(' ');
+                        putchar(' ');
+                        putchar(' ');
+                }
+                putchar('|');
+                putchar('\n');
+
+                printTree(curr->children[i], depth + 1);
+        }
+}
+
 void generate_code(const char *file_stem, struct lill_tree_node *tree)
 {
         struct lill_tree_node *curr;
@@ -45,8 +115,13 @@ void generate_code(const char *file_stem, struct lill_tree_node *tree)
         printf("%s, %s\n", filename_coolbasic, filename_c);
 
         curr = tree;
-        /* Placeholder code, will be removed */
-        if (curr){}
+
+        printTree(curr, 0);
+
+        /* Just use the damn tree printer and recurse the same way
+         * you know what to do
+         * it says what to do RIGHT THERE */
+        buildFunctionDefinitions(curr);
 
         /*
          * TODO: recurse through tree until hit function_definition
