@@ -25,7 +25,7 @@
 definitions = { line }, [ EOF ] ;
 line = function_definition , EOL ;
 function_definition = FUNCTION , VARIABLE , short_type_specification, parameter_list ;
-parameter_list = LBRACKET , separated_variables, RBRACKET ;
+parameter_list = LBRACKET , separated_variables , RBRACKET ;
 separated_variables = variable_definition , comma_prefixed_variables | '' ;
 variable_definition = VARIABLE , type_specification;
 type_specification = HASH | DOLLAR | long_type_specification ;
