@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "generate.h"
@@ -83,17 +84,30 @@ void buildFunctionDefinitions(struct lill_tree_node *curr, struct lill_function_
 {
     struct lill_function_definition *currdef;
     currdef = *defs;
+    struct lill_tree_node *parent;
 
     if (curr->type != NODE_DEFINITIONS)
     {
+        printf ("WTF are we, %s?\n", lill_tree_node_type_names[curr->type]);
         return; /* Error here */
     }
     
-
-    while (curr->type == NODE_LINE) {
-        while (curr->type == NODE_FUNCTION_DEFINITION)
+    curr = curr->children[0];
+    if (curr->type == NODE_LINE) {
+        curr = curr->children[0];
+        if (curr->type == NODE_FUNCTION_DEFINITION)
         {
-            while (curr->type == NODE_
+            parent = curr;
+            curr = curr->children[0];
+            if (curr->type == NODE_LEAF_KW_FUNCTION)
+            {
+                curr = parent->children[1];
+                
+                if (curr->type == NODE_LEAF_VARIABLE)
+                {
+                    strncpy(currdef->name, curr->data, sizeof(currdef->name));
+                }
+            }
         }
     }
 }   
@@ -139,12 +153,13 @@ void generate_code(const char *file_stem, struct lill_tree_node *tree)
 
     curr = tree;
 
-    printTree(curr, 0);
 
     /* Just use the damn tree printer and recurse the same way
      * you know what to do
      * it says what to do RIGHT THERE */
     buildFunctionDefinitions(curr, &defs);
+
+    printTree(curr, 0);
 
     /*
      * TODO: recurse through tree until hit function_definition
