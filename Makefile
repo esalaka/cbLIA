@@ -20,7 +20,10 @@ parser.o: parser.c parser.h lill_token.h errors.h util.h
 descent.o: descent.c descent.h lill_token.h lill_tree_node.h errors.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
 
-generate.o: generate.c generate.h lill_tree_node.h
+generate.o: generate.c generate.h function.h lill_tree_node.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
+
+function.o: function.c function.h lill_tree_node.h generate.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
 
 util.o: util.c util.h

@@ -3,12 +3,8 @@
 #include <string.h>
 
 #include "generate.h"
+#include "function.h"
 #include "lill_tree_node.h"
-
-struct lill_function_definition
-{
-    char name[64];
-};
 
 const char* lill_tree_node_type_names[] = {
     /* TERMINALS */
