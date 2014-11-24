@@ -5,7 +5,7 @@ CFLAGS=-ggdb -O2 -std=c99 -Wall -Wextra -Werror -pedantic -pedantic-errors
 CPPFLAGS=-DDEBUG
 LDFLAGS=
 
-cblia: main.o tokeniser.o parser.o descent.o util.o generate.o
+cblia: main.o tokeniser.o parser.o descent.o util.o generate.o function.o
 	$(CC) $(CFLAGS) -o cblia $+ $(LDFLAGS)
 
 main.o: main.c tokeniser.h parser.h errors.h

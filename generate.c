@@ -8,7 +8,7 @@
 
 const char* lill_tree_node_type_names[] = {
     /* TERMINALS */
-    /* THESE MUST MATCH lill_token_type!!!!!!!! */
+    /* THESE MUST MATCH lill_token_type */
     "NODE_INVALID",
     "NODE_LEAF_NUMBER",
     "NODE_LEAF_EQUALS",
@@ -47,7 +47,7 @@ void printTree(struct lill_tree_node *curr, int depth)
 {
     unsigned i;
     int j;
- 
+
     for (j = 0; j < depth; ++j) {
         putchar(' ');
         putchar(' ');
@@ -76,38 +76,6 @@ void printTree(struct lill_tree_node *curr, int depth)
     }
 }
 
-void buildFunctionDefinitions(struct lill_tree_node *curr, struct lill_function_definition **defs)
-{
-    struct lill_function_definition *currdef;
-    currdef = *defs;
-    struct lill_tree_node *parent;
-
-    if (curr->type != NODE_DEFINITIONS)
-    {
-        printf ("WTF are we, %s?\n", lill_tree_node_type_names[curr->type]);
-        return; /* Error here */
-    }
-    
-    curr = curr->children[0];
-    if (curr->type == NODE_LINE) {
-        curr = curr->children[0];
-        if (curr->type == NODE_FUNCTION_DEFINITION)
-        {
-            parent = curr;
-            curr = curr->children[0];
-            if (curr->type == NODE_LEAF_KW_FUNCTION)
-            {
-                curr = parent->children[1];
-                
-                if (curr->type == NODE_LEAF_VARIABLE)
-                {
-                    strncpy(currdef->name, curr->data, sizeof(currdef->name));
-                }
-            }
-        }
-    }
-}   
-
 void generate_code(const char *file_stem, struct lill_tree_node *tree)
 {
     struct lill_tree_node *curr;
@@ -133,14 +101,14 @@ void generate_code(const char *file_stem, struct lill_tree_node *tree)
 
     for (i = 0; filename_coolbasic[i] != '\0'; ++i);
     strncpy(filename_coolbasic + i, ".cb", 3 + 1);
-    
+
     /* construct .c filename */
     memset(filename_c, 0, sizeof(filename_c));
     strncpy(filename_c, file_stem, 260);
 
     for (i = 0; filename_c[i] != '\0'; ++i);
     strncpy(filename_c + i, ".c", 2 + 1);
-    
+
     /* No 'b' - we're doing Windows text I/O */
     outfile_coolbasic = fopen(filename_coolbasic, "w");
     outfile_c = fopen(filename_c, "w");
@@ -163,7 +131,7 @@ void generate_code(const char *file_stem, struct lill_tree_node *tree)
      * When that happens, find:
      *      - NODE_TERMINAL_VARIABLE ---> function name
      *      - NODE_SHORT_TYPE_SPECIFICATION ---> type
-     *      - NODE_SEPARATED_VARIABLES 
+     *      - NODE_SEPARATED_VARIABLES
      *          - NODE_VARIABLE_DEFINITION ---> 1st param
      *          - NODE_COMMA_PREFIXED_VARIABLES
      *              - NODE_VARIABLE_DEFINITION ---> rest of params
