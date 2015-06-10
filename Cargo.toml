@@ -1,0 +1,5 @@
+[package]
+
+name = "cbLIA"
+version = "0.1.0"
+authors = ["Esa Lakaniemi"]
