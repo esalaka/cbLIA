@@ -1,5 +1,8 @@
 [package]
-
 name = "cbLIA"
-version = "0.1.0"
+version = "0.0.1"
 authors = ["Esa Lakaniemi"]
+
+[dependencies]
+docopt = "0.6"
+rustc-serialize = "0.3"
