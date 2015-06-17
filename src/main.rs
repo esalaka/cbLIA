@@ -53,5 +53,5 @@ fn main() {
     
     let f = File::open(input_filename.to_owned()).unwrap();
 
-    let tokens = tokenizer::TokenIterator::new(f.bytes()).collect::<Vec<_>>();
+    let tokens = tokenizer::TokenIterator::new(f).collect::<Vec<_>>();
 }
