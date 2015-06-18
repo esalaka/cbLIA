@@ -3,6 +3,7 @@ extern crate docopt;
 
 
 mod tokenizer;
+mod parser;
 
 
 use std::fs::File;
@@ -53,5 +54,7 @@ fn main() {
     
     let f = File::open(input_filename.to_owned()).unwrap();
 
-    let tokens = tokenizer::TokenIterator::new(f).collect::<Vec<_>>();
+    let tokens = tokenizer::TokenIterator::new(f);
+
+    let ast = parser::parse(&tokens);
 }
