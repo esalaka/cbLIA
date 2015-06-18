@@ -3,6 +3,24 @@ use std::io::Read;
 use std::iter::Peekable;
 use std::fs::File;
 use std::iter;
+use std::str::FromStr;
+
+macro_rules! emit_token_number {
+    ($buf:ident) => {{
+        println!("Token::Number emitted");
+        // The following involves some magic
+        return Some(
+            Token::Number((*String::from_utf8_lossy(&*$buf.into_boxed_slice()))
+                          .parse::<i32>().unwrap()));
+
+    }}
+}
+macro_rules! emit_token_text {
+    ($buf:ident) => {{
+        println!("Token::Text emitted");
+        return Some(Token::Text($buf.clone()));
+    }}
+}
 
 #[derive(Debug)]
 enum Mode {
@@ -15,12 +33,12 @@ enum Mode {
 pub enum Token {
     Text(Vec<u8>),
     Number(i32),
-    Equals,
     LParen,
     RParen,
-    Comma,
     Dollar,
     Hash,
+    Equals,
+    Comma,
     EOL
 }
 
@@ -46,18 +64,16 @@ impl Iterator for TokenIterator {
             let next = self.iterator.next();
             let peek = self.iterator.peek();
 
-            println!("Next {:?} Peek {:?} Mode {:?}", next, peek, mode);
-
             // Returning None stops iteration
             let byte = match next {
                 None => return None,
-                Some(Err(e)) => return None,
+                Some(Err(_)) => return None,
                 Some(Ok(value)) => value
             };
 
             let peeked = match peek {
                 None => None,
-                Some(&Err(ref e)) => None,
+                Some(&Err(_)) => None,
                 Some(&Ok(ref value)) => Some(value)
             };
 
@@ -70,6 +86,7 @@ impl Iterator for TokenIterator {
                     
                     // Letters
                     // These can't be a macro, either? :c
+                    c @ b'_' |
                     c @ b'A' ... b'Z' |
                     c @ b'a' ... b'z' |
                     c @ 0xC0 ... 0xD6 |
@@ -93,13 +110,13 @@ impl Iterator for TokenIterator {
                                 },
                                 _ => {
                                     // Emit text token
-                                    unimplemented!();
+                                    emit_token_text!(buf);
                                 }
                             },
                             
                             None => {
                                 // Also emit text token
-                                unimplemented!();
+                                emit_token_text!(buf);
                             }
                         }
                     },
@@ -117,18 +134,79 @@ impl Iterator for TokenIterator {
                                 }
                                 _ => {
                                     // Emit number token
-                                    unimplemented!();
+                                    emit_token_number!(buf);
                                 }
                             },
                             None => {
                                 // Also emit number token
-                                unimplemented!();
+                                emit_token_number!(buf);
                             }
                         }
-                    }
+                    },
 
-                    _ => {
-                        panic!("Unimplemented or invalid byte!");
+                    // Negative number
+                    c @ b'-' => {
+                        buf.clear();
+                        buf.push(c);
+
+                        match peeked {
+                            Some(&peek_byte) => match peek_byte {
+                                b'0' ... b'9' => {
+                                    // Goto number mode
+                                    mode = Mode::Number;
+                                }
+                                _ => {
+                                    // Invalid!
+                                    panic!("Minus encountered without number");
+                                }
+                            },
+                            None => {
+                                // Invalid!
+                                panic!("Minus encountered without number");
+                            }
+                        }
+                    },
+
+                    // Opening paren
+                    b'(' => {
+                        // Just emit it
+                        println!("Token::LParen emitted");
+                        return Some(Token::LParen);
+                    },
+
+                    // Closing paren
+                    b')' => {
+                        // Just emit it
+                        println!("Token::RParen emitted");
+                        return Some(Token::RParen);
+                    },
+
+                    b'$' => {
+                        println!("Token::Dollar emitted");
+                        return Some(Token::Dollar);
+                    },
+
+                    b'#' => {
+                        println!("Token::Hash emitted");
+                        return Some(Token::Hash);
+                    },
+
+                    b'=' => {
+                        println!("Token::Equals emitted");
+                        return Some(Token::Equals);
+                    },
+
+                    b',' => {
+                        println!("Token::Comma emitted");
+                        return Some(Token::Comma);
+                    },
+
+                    // Skip spaces
+                    b' ' => {},
+
+                    b @ _ => {
+                        panic!("Invalid or unhandled byte {:?} encountered",
+                               b);
                     }
 
                 },
@@ -136,7 +214,7 @@ impl Iterator for TokenIterator {
                 Mode::Newline => match byte {
                     b'\n' => {
                     }
-                    _ => panic!("CR without corresponding LF in input file!")
+                    _ => panic!("CR without corresponding LF in input file")
                 },
 
                 // We've already peeked at byte if we're here
@@ -160,16 +238,16 @@ impl Iterator for TokenIterator {
                             // Valid varname ends
                             _ => {
                                 // Emit text token
-                                unimplemented!();
                                 mode = Mode::None;
+                                emit_token_text!(buf);
                             }
                     },
 
                     None => {
                         // Well, let's go back to normal mode?
                         // Also emit text token
-                        unimplemented!();
                         mode = Mode::None;
+                        emit_token_text!(buf);
                     }
                 },
 
@@ -183,22 +261,20 @@ impl Iterator for TokenIterator {
                             // Valid number ends
                             _ => {
                                 // Emit number token
-                                unimplemented!();
                                 mode = Mode::None;
+                                emit_token_number!(buf);
                             }
                     },
 
                     None => {
                         // Also emit number token
-                        unimplemented!();
                         mode = Mode::None;
+                        emit_token_number!(buf);
                     }
                 }
 
             }
                             
         }
-
-        Some(Token::EOL)
     }
 }
