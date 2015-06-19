@@ -2,8 +2,6 @@ use std::io::Bytes;
 use std::io::Read;
 use std::iter::Peekable;
 use std::fs::File;
-use std::iter;
-use std::str::FromStr;
 
 macro_rules! emit_token_number {
     ($buf:ident) => {{
