@@ -5,7 +5,6 @@ use std::fs::File;
 
 macro_rules! emit_token_number {
     ($buf:ident) => {{
-        println!("Token::Number emitted");
         // The following involves some magic
         return Some(
             Token::Number((*String::from_utf8_lossy(&*$buf.into_boxed_slice()))
@@ -15,7 +14,6 @@ macro_rules! emit_token_number {
 }
 macro_rules! emit_token_text {
     ($buf:ident) => {{
-        println!("Token::Text emitted");
         return Some(Token::Text($buf.clone()));
     }}
 }
@@ -28,6 +26,7 @@ enum Mode {
     Number
 }
 
+#[derive(Debug)]
 pub enum Token {
     Text(Vec<u8>),
     Number(i32),
@@ -168,34 +167,28 @@ impl Iterator for TokenIterator {
                     // Opening paren
                     b'(' => {
                         // Just emit it
-                        println!("Token::LParen emitted");
                         return Some(Token::LParen);
                     },
 
                     // Closing paren
                     b')' => {
                         // Just emit it
-                        println!("Token::RParen emitted");
                         return Some(Token::RParen);
                     },
 
                     b'$' => {
-                        println!("Token::Dollar emitted");
                         return Some(Token::Dollar);
                     },
 
                     b'#' => {
-                        println!("Token::Hash emitted");
                         return Some(Token::Hash);
                     },
 
                     b'=' => {
-                        println!("Token::Equals emitted");
                         return Some(Token::Equals);
                     },
 
                     b',' => {
-                        println!("Token::Comma emitted");
                         return Some(Token::Comma);
                     },
 
@@ -217,57 +210,58 @@ impl Iterator for TokenIterator {
 
                 // We've already peeked at byte if we're here
                 // That means we know we have something!
-                Mode::Text => match peeked {
-                    Some(&peek_byte) => match peek_byte {
-                            // NOTE: THIS IS NOT THE SAME PATTERN AS
-                            // THE PREVIOUS LETTER PATTERN!!
-                            b'_' |
-                            b'0' ... b'9' |
-                            b'A' ... b'Z' |
-                            b'a' ... b'z' |
-                            0xC0 ... 0xD6 |
-                            0xD8 ... 0xF6 |
-                            0xF8 ... 0xFF => {
-                                // Push *current* (not peeked!) byte
-                                buf.push(byte);
-                                // Carry on
-                            },
+                // Push *current* (not peeked!) byte
+                Mode::Text => {
+                    buf.push(byte);
+                    match peeked {
+                        Some(&peek_byte) => match peek_byte {
+                                // NOTE: THIS IS NOT THE SAME PATTERN AS
+                                // THE PREVIOUS LETTER PATTERN!!
+                                b'_' |
+                                b'0' ... b'9' |
+                                b'A' ... b'Z' |
+                                b'a' ... b'z' |
+                                0xC0 ... 0xD6 |
+                                0xD8 ... 0xF6 |
+                                0xF8 ... 0xFF => {
+                                    // Carry on
+                                },
 
-                            // Valid varname ends
-                            _ => {
-                                // Emit text token
-                                mode = Mode::None;
-                                emit_token_text!(buf);
-                            }
-                    },
+                                // Valid varname ends
+                                _ => {
+                                    // Emit text token
+                                    emit_token_text!(buf);
+                                }
+                        },
 
-                    None => {
-                        // Well, let's go back to normal mode?
-                        // Also emit text token
-                        mode = Mode::None;
-                        emit_token_text!(buf);
+                        None => {
+                            // Well, let's go back to normal mode?
+                            // Also emit text token
+                            emit_token_text!(buf);
+                        }
                     }
                 },
 
-                Mode::Number => match peeked {
-                    Some(&peek_byte) => match peek_byte {
-                            b'0' ... b'9' => {
-                                // Push current byte
-                                buf.push(byte);
-                            },
+                Mode::Number => {
+                    // Push current byte
+                    buf.push(byte);
+                    match peeked {
+                        Some(&peek_byte) => match peek_byte {
+                                b'0' ... b'9' => {
+                                    // Carry on...
+                                },
 
-                            // Valid number ends
-                            _ => {
-                                // Emit number token
-                                mode = Mode::None;
-                                emit_token_number!(buf);
-                            }
-                    },
+                                // Valid number ends
+                                _ => {
+                                    // Emit number token
+                                    emit_token_number!(buf);
+                                }
+                        },
 
-                    None => {
-                        // Also emit number token
-                        mode = Mode::None;
-                        emit_token_number!(buf);
+                        None => {
+                            // Also emit number token
+                            emit_token_number!(buf);
+                        }
                     }
                 }
 
