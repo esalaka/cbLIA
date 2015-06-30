@@ -6,8 +6,9 @@ use std::fs::File;
 macro_rules! emit_token_number {
     ($buf:ident) => {{
         // The following involves some magic
+        // First convert the buffer - a string - into a slice
         return Some(
-            Token::Number((*String::from_utf8_lossy(&*$buf.into_boxed_slice()))
+            Token::Number(String::from_utf8_lossy(&$buf[..])
                           .parse::<i32>().unwrap()));
 
     }}
@@ -204,6 +205,8 @@ impl Iterator for TokenIterator {
 
                 Mode::Newline => match byte {
                     b'\n' => {
+                        // Emit EOL, we're good
+                        return Some(Token::EOL);
                     }
                     _ => panic!("CR without corresponding LF in input file")
                 },
