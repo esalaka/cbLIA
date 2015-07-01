@@ -1,0 +1,139 @@
+//=============================================================================
+// CoolBasic DLL
+// by Marcoder
+//=============================================================================
+
+
+Global gDLLMemBlock, gDLLMemBlockOffset
+
+//=============================================================================
+// Alustetaan muistipala
+//=============================================================================
+Function _DLL_InitMemBlock(_size = 0)
+    If gDLLMemBlock Then DeleteMEMBlock gDLLMemBlock    
+    gDLLMemBlock = MakeMEMBlock(_size + 4)
+    PokeInt gDLLMemBlock, 0, 0
+    gDLLMemBlockOffset = 4
+EndFunction
+
+
+//=============================================================================
+// Muistipalan tuhoaminen
+//=============================================================================
+Function _DLL_DeleteMemBlock()
+    DeleteMEMBlock gDLLMemBlock
+    gDLLMemBlock = 0
+    gDLLMemBlockOffset = 0
+EndFunction
+
+
+//=============================================================================
+// Kutsutaan DLL:הה
+//=============================================================================
+Function _DLL_CallDll(_method$)
+    lMemSize = MEMBlockSize(gDLLMemBlock)
+    PokeInt gDLLMemBlock, 0, lMemSize
+    CallDLL "cbLib.dll", _method, gDLLMemBlock
+    gDLLMemBlockOffset = 0
+EndFunction
+
+
+//=============================================================================
+// Muutetaan muistipalan kokoa
+//=============================================================================
+Function _DLL_MemBlockResize(_length)
+    lMemSize = MEMBlockSize(gDLLMemBlock)
+    If gDLLMemBlockOffset + _length > lMemSize Then
+        ResizeMEMBlock gDLLMemBlock, gDLLMemBlockOffset + _length
+    EndIf
+EndFunction
+
+
+//=============================================================================
+// Kirjoitetaan muistipalaan 32-bittinen kokonaisluku
+//=============================================================================
+Function _DLL_PutInt(_value)
+    _DLL_MemBlockResize(4)
+    PokeInt gDLLMemBlock, gDLLMemBlockOffset, _value
+    gDLLMemBlockOffset + 4
+EndFunction
+
+
+//=============================================================================
+// Luetaan muistipalasta 32-bittinen kokonaisluku
+//=============================================================================
+Function _DLL_GetInt()
+    lRetVal = PeekInt(gDLLMemBlock, gDLLMemBlockOffset)
+    gDLLMemBlockOffset + 4
+    Return lRetVal
+EndFunction
+
+
+//=============================================================================
+// Kirjoitetaan muistipalaan 32-bittinen liukuluku
+//=============================================================================
+Function _DLL_PutFloat(_value#)
+    _DLL_MemBlockResize(4)
+    PokeFloat gDLLMemBlock, gDLLMemBlockOffset, _value
+    gDLLMemBlockOffset + 4
+EndFunction
+
+
+//=============================================================================
+// Luetaan muistipalasta 32-bittinen liukuluku
+//=============================================================================
+Function _DLL_GetFloat#()
+    lRetVal# = PeekFloat(gDLLMemBlock, gDLLMemBlockOffset)
+    gDLLMemBlockOffset + 4
+    Return lRetVal
+EndFunction
+
+
+//=============================================================================
+// Kirjoitetaan muistipalaan 8-bittinen kokonaisluku
+//=============================================================================
+Function _DLL_PutByte(_value)
+    _DLL_MemBlockResize(1)
+    PokeByte gDLLMemBlock, gDLLMemBlockOffset, _value
+    gDLLMemBlockOffset + 1
+EndFunction
+
+
+//=============================================================================
+// Luetaan muistipalasta 8-bittinen kokonaisluku
+//=============================================================================
+Function _DLL_GetByte()
+    lRetVal = PeekByte(gDLLMemBlock, gDLLMemBlockOffset)
+    gDLLMemBlockOffset + 1
+    Return lRetVal
+EndFunction
+
+
+//=============================================================================
+// Kirjoitetaan muistipalaan merkkijono
+//=============================================================================
+Function _DLL_PutString(_value$)
+    lStrLen = Len(_value)
+    _DLL_MemBlockResize(lStrLen + 4)
+    PokeInt gDLLMemBlock, gDLLMemBlockOffset, lStrLen
+    gDLLMemBlockOffset + 4
+    For i = 1 To lStrLen
+        PokeByte gDLLMemBlock, gDLLMemBlockOffset, Asc(Mid(_value, i, 1))
+        gDLLMemBlockOffset + 1
+    Next i
+EndFunction
+
+
+//=============================================================================
+// Luetaan muistipalasta merkkijono
+//=============================================================================
+Function _DLL_GetString$()
+    lStrLen = _DLL_GetInt()
+    lRetVal$ = ""
+    For i = 1 To lStrLen
+        c = _DLL_GetByte()
+        If c > 0 Then lRetVal = lRetVal + Chr(c)
+    Next i
+    Return lRetVal
+EndFunction
+

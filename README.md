@@ -1,3 +1,4 @@
-Automatisation for CB DLL generation.
+Automatisation for CB DLL binding generation.
 
-Later.
+cbDLL.cb is copyright Marcoder, originally released somewhere around
+september 2007

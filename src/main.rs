@@ -4,6 +4,7 @@ extern crate docopt;
 
 mod tokenizer;
 mod parser;
+mod generator;
 
 
 use std::fs::File;
@@ -33,7 +34,7 @@ fn main() {
     let input_filename = args.arg_source;
 
     // Split it on each .
-    let filename_segments = input_filename
+    let filename_segments = (&input_filename)
                             .split(".")
                             .collect::<Vec<_>>();
     
@@ -46,10 +47,10 @@ fn main() {
     // If we have anything left, use that.
     // Otherwise, use the full input filename.
     let base_filename = if filename_stem.len() > 0 {
-                            filename_stem.to_owned()
+                            filename_stem
                         }
                         else {
-                            input_filename.to_owned()
+                            (&input_filename).to_string()
                         };
     
     let f = File::open(input_filename.to_owned()).unwrap();
@@ -60,4 +61,13 @@ fn main() {
         Ok(node) => node,
         Err(e) => panic!(e)
     };
+
+    let cb_file = File::create((&base_filename).to_string() + ".cb").unwrap();
+    let c_file = File::create((&base_filename).to_string() + ".c").unwrap();
+
+    // Write
+    generator::coolbasic(&ast, cb_file);
+    generator::c(&ast, c_file);
+
+    // Files should be closed when they leave scope.
 }
