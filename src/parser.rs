@@ -88,6 +88,39 @@ fn single_argument(it: &mut PeekableTokenIterator) -> WrappedNode {
     // I really like this lil' function
     let datatype = datatype_sigil(it);
 
+    // Now check if there's defaults
+    match &it.peek() {
+        &Some(&tokenizer::Token::Equals) => {
+            // Consume that
+            {
+                it.next();
+            }
+            
+            // Now we match the NEXT peek
+            if match it.peek() {
+                Some(&tokenizer::Token::String(_)) => {
+                    // Consume that, too
+                    {
+                        true
+                    }
+                },
+
+                Some(&tokenizer::Token::Number(_)) => {
+                    true
+                },
+
+                Some(ref what) => error_expected!("Number or String", what),
+                none @ None => error_expected!("Number or String", none)
+            } {
+                it.next();
+            }
+        },
+
+        // Don't mind if there's none
+        _ => {}
+    }
+    // Now we should've dealt with potential defaults.
+
     // That's it!
     // Check for a comma or RParen, and return
     // This might look perverse but basically, the match is the
@@ -103,7 +136,8 @@ fn single_argument(it: &mut PeekableTokenIterator) -> WrappedNode {
         Some(&tokenizer::Token::Comma) => {
             // Consume comma though
             true
-        }
+        },
+
 
         Some(ref what) => error_expected!("Comma", what),
 

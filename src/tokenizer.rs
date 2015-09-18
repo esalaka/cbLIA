@@ -9,7 +9,7 @@ macro_rules! emit_token_number {
         // First convert the buffer - a string - into a slice
         return Some(
             Token::Number(String::from_utf8_lossy(&$buf[..])
-                          .parse::<i32>().unwrap()));
+                          .parse().unwrap()));
 
     }}
 }
@@ -19,18 +19,27 @@ macro_rules! emit_token_text {
     }}
 }
 
+macro_rules! emit_token_string {
+    ($buf:ident) => {{
+        return Some(Token::String($buf.clone()));
+    }}
+}
+
 #[derive(Debug)]
 enum Mode {
     None,
     Newline,
     Text,
-    Number
+    Number,
+    Decimal,
+    String
 }
 
 #[derive(Debug)]
 pub enum Token {
     Text(Vec<u8>),
-    Number(i32),
+    String(Vec<u8>),
+    Number(f64),
     LParen,
     RParen,
     Dollar,
@@ -61,6 +70,8 @@ impl Iterator for TokenIterator {
         loop {
             let next = self.iterator.next();
             let peek = self.iterator.peek();
+
+            println!("{:?} {:?} {:?}", next, peek, mode);
 
             // Returning None stops iteration
             let byte = match next {
@@ -119,6 +130,15 @@ impl Iterator for TokenIterator {
                         }
                     },
 
+                    // String
+                    b'"' => {
+                        // Clear token buffer
+                        buf.clear();
+                        // Don't insert current char - it's irrelevant, it's always "
+                        // We don't even match peeked - we just go to Mode::String
+                        mode = Mode::String;
+                    },
+
                     // Number
                     c @ b'0' ... b'9' => {
                         buf.clear();
@@ -130,6 +150,12 @@ impl Iterator for TokenIterator {
                                     // Goto number mode
                                     mode = Mode::Number;
                                 }
+
+                                b'.' => {
+                                    // Goto decimal mode
+                                    mode = Mode::Decimal;
+                                },
+
                                 _ => {
                                     // Emit number token
                                     emit_token_number!(buf);
@@ -196,6 +222,10 @@ impl Iterator for TokenIterator {
                     // Skip spaces
                     b' ' => {},
 
+                    b'\n' => {
+                        panic!("UNIX newline encountered");
+                    }
+
                     b @ _ => {
                         panic!("Invalid or unhandled byte {:?} encountered",
                                b);
@@ -254,6 +284,12 @@ impl Iterator for TokenIterator {
                                     // Carry on...
                                 },
 
+                                // Decimal point found
+                                b'.' => {
+                                    // Change modes
+                                    mode = Mode::Decimal;
+                                },
+
                                 // Valid number ends
                                 _ => {
                                     // Emit number token
@@ -266,8 +302,49 @@ impl Iterator for TokenIterator {
                             emit_token_number!(buf);
                         }
                     }
-                }
+                },
 
+                Mode::Decimal => {
+                    buf.push(byte);
+                    match peeked {
+                        Some(&peek_byte) => match peek_byte {
+                            b'0' ... b'9' => {
+                                // Yes, good
+                            },
+
+                            b'.' => {
+                                panic!("Only one decimal point allowed in a number!");
+                            },
+
+                            _ => {
+                                // Emit number token
+                                emit_token_number!(buf);
+                            }
+                        },
+                        
+                        None => {
+                            // Also emit number token
+                            emit_token_number!(buf);
+                        }
+                    }
+                },
+
+                Mode::String => {
+                    // The current byte might be the closing "
+                    match byte {
+                        b'"' => {
+                            emit_token_string!(buf);
+                        },
+
+                        c @ _ => {
+                            // Nope! Push it.
+                            buf.push(c);
+                        }
+                    }
+
+                    // Kinda strange how there's no peeky logic here
+                    // Guess it's what happens when ~~delimiters~~
+                }
             }
                             
         }
