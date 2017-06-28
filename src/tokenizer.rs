@@ -2,26 +2,28 @@ use std::io::Bytes;
 use std::io::Read;
 use std::iter::Peekable;
 use std::fs::File;
+use std::result::Result;
+use std::io::Error;
 
 macro_rules! emit_token_number {
     ($buf:ident) => {{
         // The following involves some magic
         // First convert the buffer - a string - into a slice
-        return Some(
+        return Some(Ok(
             Token::Number(String::from_utf8_lossy(&$buf[..])
-                          .parse().unwrap()));
+                          .parse().unwrap())));
 
     }}
 }
 macro_rules! emit_token_text {
     ($buf:ident) => {{
-        return Some(Token::Text($buf.clone()));
+        return Some(Ok(Token::Text($buf.clone())));
     }}
 }
 
 macro_rules! emit_token_string {
     ($buf:ident) => {{
-        return Some(Token::String($buf.clone()));
+        return Some(Ok(Token::String($buf.clone())));
     }}
 }
 
@@ -49,18 +51,45 @@ pub enum Token {
     EOL
 }
 
+struct ByteResultIterator {
+    iterator: Box<Iterator<Item = u8>>
+}
+
+impl ByteResultIterator {
+    pub fn new<T: Iterator<Item = u8> + 'static>(iter: T) -> Self {
+        ByteResultIterator{ iterator: Box::new(iter) }
+    }
+}
+
+impl Iterator for ByteResultIterator {
+    type Item = Result<u8, Error>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.iterator.next() {
+            Some(x) => Some(Ok(x)),
+            None => None
+        }
+    }
+}
+
+type UnderlyingType = Box<Iterator<Item = Result<u8, Error>>>;
+
 pub struct TokenIterator {
-    iterator: Peekable<Bytes<File>>
+    iterator: Peekable<UnderlyingType>
 }
 
 impl TokenIterator {
     pub fn new(file: File) -> TokenIterator {
-        TokenIterator{ iterator: file.bytes().peekable() }
+        TokenIterator{ iterator: (Box::new(file.bytes()) as UnderlyingType).peekable() }
+    }
+
+    pub fn from_bytes(bytes: &[u8]) -> TokenIterator {
+        TokenIterator{ iterator: (Box::new(ByteResultIterator::new(bytes.to_owned().into_iter())) as UnderlyingType).peekable() }
     }
 }
 
 impl Iterator for TokenIterator {
-    type Item = Token;
+    type Item = Result<Token, String>;
 
     // The actual tokenisation happens here
     fn next(&mut self) -> Option<Self::Item> {
@@ -181,12 +210,12 @@ impl Iterator for TokenIterator {
                                 }
                                 _ => {
                                     // Invalid!
-                                    panic!("Minus encountered without number");
+                                    return Some(Err("Minus encountered without number".to_owned()));
                                 }
                             },
                             None => {
                                 // Invalid!
-                                panic!("Minus encountered without number");
+                                return Some(Err("Minus encountered without number".to_owned()));
                             }
                         }
                     },
@@ -194,41 +223,41 @@ impl Iterator for TokenIterator {
                     // Opening paren
                     b'(' => {
                         // Just emit it
-                        return Some(Token::LParen);
+                        return Some(Ok(Token::LParen));
                     },
 
                     // Closing paren
                     b')' => {
                         // Just emit it
-                        return Some(Token::RParen);
+                        return Some(Ok(Token::RParen));
                     },
 
                     b'$' => {
-                        return Some(Token::Dollar);
+                        return Some(Ok(Token::Dollar));
                     },
 
                     b'#' => {
-                        return Some(Token::Hash);
+                        return Some(Ok(Token::Hash));
                     },
 
                     b'=' => {
-                        return Some(Token::Equals);
+                        return Some(Ok(Token::Equals));
                     },
 
                     b',' => {
-                        return Some(Token::Comma);
+                        return Some(Ok(Token::Comma));
                     },
 
                     // Skip spaces
                     b' ' => {},
 
                     b'\n' => {
-                        panic!("UNIX newline encountered");
+                        return Some(Err("UNIX newline encountered".to_owned()));
                     }
 
                     b @ _ => {
-                        panic!("Invalid or unhandled byte {:?} encountered",
-                               b);
+                        return Some(Err(format!("Invalid or unhandled byte {:?} encountered",
+                               b)));
                     }
 
                 },
@@ -236,9 +265,9 @@ impl Iterator for TokenIterator {
                 Mode::Newline => match byte {
                     b'\n' => {
                         // Emit EOL, we're good
-                        return Some(Token::EOL);
+                        return Some(Ok(Token::EOL));
                     }
-                    _ => panic!("CR without corresponding LF in input file")
+                    _ => return Some(Err("CR without corresponding LF in input file".to_owned()))
                 },
 
                 // We've already peeked at byte if we're here
@@ -313,7 +342,7 @@ impl Iterator for TokenIterator {
                             },
 
                             b'.' => {
-                                panic!("Only one decimal point allowed in a number!");
+                                return Some(Err("Only one decimal point allowed in a number!".to_owned()));
                             },
 
                             _ => {

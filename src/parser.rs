@@ -15,6 +15,7 @@ macro_rules! error_expected {
 
 #[derive(Debug)]
 pub enum Datatype {
+    Unknown,
     String,
     Float,
     Integer
@@ -35,21 +36,24 @@ pub type WrappedNodeVec = Option<Result<Vec<Node>, String>>;
 fn datatype_sigil(it: &mut PeekableTokenIterator) -> Datatype {
     // Never errors, only mutates state if valid
     match it.peek() {
-        Some(&tokenizer::Token::Dollar) => {
+        Some(&Ok(tokenizer::Token::Dollar)) => {
             // Consume
             it.next();
             Datatype::String
         },
 
-        Some(&tokenizer::Token::Hash) => {
+        Some(&Ok(tokenizer::Token::Hash)) => {
             it.next();
             Datatype::Float
         },
 
         // Any other case there IS no sigil
-        _ => {
+        Some(&Ok(_)) => {
             Datatype::Integer
         }
+
+        // Something weird happened
+        _ => Datatype::Unknown
     }
 }
 
@@ -59,20 +63,22 @@ fn single_argument(it: &mut PeekableTokenIterator) -> WrappedNode {
     // See further below for what the true/false do
     if match it.peek() {
         // No more arguments
-        Some(&tokenizer::Token::RParen) => {
+        Some(&Ok(tokenizer::Token::RParen)) => {
             // Consume and return
             true
         }
 
         // An argument!
-        Some(&tokenizer::Token::Text(_)) => {
+        Some(&Ok(tokenizer::Token::Text(_))) => {
             // Do not consume, do not return
             false
         },
 
-        Some(ref what) => error_expected!("Text", what),
+        Some(&Ok(ref what)) => error_expected!("Text", what),
 
-        none @ None => error_expected!("Text", none)
+        none @ None => error_expected!("Text", none),
+
+        Some(&Err(ref msg)) => error_expected!("Text", msg)
     } {
         it.next();
         return None;
@@ -80,8 +86,10 @@ fn single_argument(it: &mut PeekableTokenIterator) -> WrappedNode {
 
     // We have a Text at this point
     let name = match it.next() {
-        Some(tokenizer::Token::Text(n)) => n,
+        Some(Ok(tokenizer::Token::Text(n))) => n,
     
+        Some(Err(msg)) => error_expected!("Text", msg),
+
         _ => unreachable!()
     };
 
@@ -90,7 +98,7 @@ fn single_argument(it: &mut PeekableTokenIterator) -> WrappedNode {
 
     // Now check if there's defaults
     match &it.peek() {
-        &Some(&tokenizer::Token::Equals) => {
+        &Some(&Ok(tokenizer::Token::Equals)) => {
             // Consume that
             {
                 it.next();
@@ -98,14 +106,14 @@ fn single_argument(it: &mut PeekableTokenIterator) -> WrappedNode {
             
             // Now we match the NEXT peek
             if match it.peek() {
-                Some(&tokenizer::Token::String(_)) => {
+                Some(&Ok(tokenizer::Token::String(_))) => {
                     // Consume that, too
                     {
                         true
                     }
                 },
 
-                Some(&tokenizer::Token::Number(_)) => {
+                Some(&Ok(tokenizer::Token::Number(_))) => {
                     true
                 },
 
@@ -128,12 +136,12 @@ fn single_argument(it: &mut PeekableTokenIterator) -> WrappedNode {
     // if it returns true. We do it this way because it is still
     // borrowed to match before it ends.
     if match it.peek() {
-        Some(&tokenizer::Token::RParen) => {
+        Some(&Ok(tokenizer::Token::RParen)) => {
             // Don't consume the RParen, yet
             false
         },
 
-        Some(&tokenizer::Token::Comma) => {
+        Some(&Ok(tokenizer::Token::Comma)) => {
             // Consume comma though
             true
         },
@@ -156,7 +164,7 @@ fn function_arguments(it: &mut PeekableTokenIterator) -> WrappedNodeVec {
     {
         match it.peek() {
             // On LParen, carry on
-            Some(&tokenizer::Token::LParen) => {},
+            Some(&Ok(tokenizer::Token::LParen)) => {},
 
             Some(ref what) => error_expected!("LParen", what),
 
@@ -195,7 +203,7 @@ fn function(it: &mut PeekableTokenIterator) -> WrappedNode {
         // This'll return with error if it's not a Text
         match it.peek() {
             // If it's a Text, carry on
-            Some(&tokenizer::Token::Text(_)) => {},
+            Some(&Ok(tokenizer::Token::Text(_))) => {},
 
             // If not...
             Some(ref what) => error_expected!("Text", what),
@@ -210,7 +218,7 @@ fn function(it: &mut PeekableTokenIterator) -> WrappedNode {
 
         // Now we know it's a token::Text
         match it.next() {
-            Some(tokenizer::Token::Text(val @ _)) => val,
+            Some(Ok(tokenizer::Token::Text(val @ _))) => val,
 
             // So the code must not be broken
             _ => unreachable!()
@@ -227,7 +235,7 @@ fn function(it: &mut PeekableTokenIterator) -> WrappedNode {
     // Now we'll match for the function name
     let function_name = {
         match it.peek() {
-            Some(&tokenizer::Token::Text(_)) => {},
+            Some(&Ok(tokenizer::Token::Text(_))) => {},
 
             Some(ref what) => error_expected!("Text", what),
 
@@ -237,7 +245,7 @@ fn function(it: &mut PeekableTokenIterator) -> WrappedNode {
 
         // Return the actual value for function_name
         match it.next() {
-            Some(tokenizer::Token::Text(val @ _)) => val,
+            Some(Ok(tokenizer::Token::Text(val @ _))) => val,
             
             _ => unreachable!()
         }
@@ -263,7 +271,7 @@ fn function(it: &mut PeekableTokenIterator) -> WrappedNode {
     // This actually matches a line so grab the EOL too
     match it.peek() {
         // What we want
-        Some(&tokenizer::Token::EOL) => {},
+        Some(&Ok(tokenizer::Token::EOL)) => {},
 
         Some(ref what) => error_expected!("EOL", what),
 
