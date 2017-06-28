@@ -42,6 +42,11 @@ pub fn coolbasic(root: &parser::Node, mut outfile: fs::File){
 
             &parser::Datatype::String => {
                 b"$"
+            },
+
+            _ => {
+                println!("Unknown datatype encountered!");
+                return;
             }
         }).unwrap();
 
@@ -77,7 +82,13 @@ pub fn coolbasic(root: &parser::Node, mut outfile: fs::File){
 
                 &parser::Datatype::String => {
                     b"$"
+                },
+
+                _ => {
+                    println!("Unknown datatype encountered!");
+                    return;
                 }
+
             }).unwrap();
         }
 
@@ -98,7 +109,11 @@ pub fn coolbasic(root: &parser::Node, mut outfile: fs::File){
             outfile.write_all(match datatype {
                 &parser::Datatype::Integer => b"    _DLL_PutInt(",
                 &parser::Datatype::Float => b"    _DLL_PutFloat(",
-                &parser::Datatype::String => b"    _DLL_PutString("
+                &parser::Datatype::String => b"    _DLL_PutString(",
+                _ => {
+                    println!("Unknown datatype encountered!");
+                    return;
+                }
             }).unwrap();
             outfile.write_all(name).unwrap();
             outfile.write_all(b")\r\n").unwrap();
@@ -113,7 +128,11 @@ pub fn coolbasic(root: &parser::Node, mut outfile: fs::File){
         outfile.write_all(match datatype {
             &parser::Datatype::Integer => b"    ret = _DLL_GetInt()\r\n",
             &parser::Datatype::Float => b"    ret# = _DLL_GetFloat()\r\n",
-            &parser::Datatype::String => b"    ret$ = _DLL_GetString()\r\n"
+            &parser::Datatype::String => b"    ret$ = _DLL_GetString()\r\n",
+            _ => {
+                println!("Unknown datatype encountered!");
+                return;
+            }
         }).unwrap();
 
         outfile.write_all(b"    _DLL_DeleteMemBlock()\r\n").unwrap();
@@ -152,6 +171,10 @@ pub fn c(root: &parser::Node, mut outfile: fs::File) {
             &parser::Datatype::Float => b"\tfloat ret;\n",
             &parser::Datatype::String => {
                 b"\t// This is probably NOT what you want\n\tchar * ret;\n"
+            },
+            _ => {
+                println!("Unknown datatype encountered!");
+                return;
             }
         }).unwrap();
         outfile.write_all(b"\tint len;\n\n").unwrap();
@@ -171,7 +194,11 @@ pub fn c(root: &parser::Node, mut outfile: fs::File) {
             outfile.write_all(match datatype {
                 &parser::Datatype::Integer => b"\tint ",
                 &parser::Datatype::Float => b"\tfloat ",
-                &parser::Datatype::String => b"\tchar *"
+                &parser::Datatype::String => b"\tchar *",
+                _ => {
+                    println!("Unknown datatype encountered!");
+                    return;
+                }
             }).unwrap();
 
             outfile.write_all(name).unwrap();
@@ -179,7 +206,11 @@ pub fn c(root: &parser::Node, mut outfile: fs::File) {
             outfile.write_all(match datatype {
                 &parser::Datatype::Integer => b"*((int *)(&(",
                 &parser::Datatype::Float => b"*((float *)(&(",
-                &parser::Datatype::String => b"((char *)(&("
+                &parser::Datatype::String => b"((char *)(&(",
+                _ => {
+                    println!("Unknown datatype encountered!");
+                    return;
+                }
             }).unwrap();
 
             let temp_offset = match datatype {
@@ -202,6 +233,10 @@ pub fn c(root: &parser::Node, mut outfile: fs::File) {
                 &parser::Datatype::String => {
                     " + *((int *)(&(_data[".to_string()
                       + &offset + "]))) + sizeof(int)"
+                },
+                _ => {
+                    println!("Unknown datatype encountered!");
+                    return;
                 }
             }[..];
         }
