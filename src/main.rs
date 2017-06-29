@@ -59,7 +59,10 @@ fn main() {
 
     let ast = match parser::parse(tokens) {
         Ok(node) => node,
-        Err(e) => panic!(e)
+        Err(e) => {
+            println!("Error parsing file: {:?}", e);
+            return;
+        }
     };
 
     let cb_file = File::create((&base_filename).to_string() + ".cb").unwrap();

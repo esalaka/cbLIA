@@ -9,10 +9,11 @@ macro_rules! emit_token_number {
     ($buf:ident) => {{
         // The following involves some magic
         // First convert the buffer - a string - into a slice
-        return Some(Ok(
-            Token::Number(String::from_utf8_lossy(&$buf[..])
-                          .parse().unwrap())));
-
+        return match String::from_utf8_lossy(&$buf[..])
+                          .parse() {
+            Ok(value) => Some(Ok(Token::Number(value))),
+            Err(_) => Some(Err("String was not a valid number".to_owned()))
+        };
     }}
 }
 macro_rules! emit_token_text {
